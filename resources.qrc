@@ -1,0 +1,19 @@
+<RCC>
+    <qresource prefix="/plugins/googlemapsengineconnector" >
+        <file>icon.png</file>
+        <file>about.html</file>
+        <file>oauth_help.html</file>
+        <file>styles/catalog_style.qml</file>
+        <file>images/private-16.png</file>
+        <file>images/search-16.png</file>
+        <file>images/sync-16.png</file>
+        <file>images/gallery-16.png</file>
+        <file>images/overlay-16.png</file>
+        <file>images/maps_engine-16.png</file>
+        <file>images/maps-16.png</file>
+        <file>images/link-16.png</file>
+        <file>images/upload_item-16.png</file>
+        <file>images/edit-16.png</file>
+        <file>images/google_plus-16.png</file>
+    </qresource>
+</RCC>
