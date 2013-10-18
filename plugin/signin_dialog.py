@@ -19,6 +19,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 from PyQt4.QtCore import pyqtSignal, QUrl
 from PyQt4.QtGui import QDialog
 from PyQt4.QtNetwork import QNetworkCookieJar
+from qgis.gui import QgsMessageBar
+
 import gme_api
 import oauth2_utils
 import settings
@@ -83,6 +85,10 @@ class Dialog(QDialog, Ui_Dialog):
     # Make sure the user has access to maps engine projects.
     if not results.get('projects'):
       self.authStateChange.emit(False, token, userName)
+      self.iface.messageBar().pushMessage(
+          'Google Maps Engine Connector',
+          'You do not have access to any Google Maps Engine accounts.',
+          level=QgsMessageBar.INFO, duration=6)
       return
 
     self.authStateChange.emit(True, token, userName)
