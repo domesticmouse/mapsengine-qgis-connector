@@ -21,7 +21,7 @@ Installation
 ------------
 The connector supports QGIS 2.0+ and can be installed via the QGIS plugin
 manager.
-Plugins -> Manage and Install Plugins -> Google Maps Engine Connector for QGIS
+Plugins -> Manage and Install Plugins -> Google Maps Engine Connector
 
 
 Overview of the Tools
