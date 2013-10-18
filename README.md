@@ -28,7 +28,7 @@ Overview of the Tools
 | ![Sign In](/images/private-16.png) | Sign in or out of your Maps Engine Account. |
 | ![Search](/images/search-16.png) | Search for a map from a Google Maps Engine account. Once you select a map and click OK, a bounding box layer is added to the QGIS canvas.* |
 | ![Search in Gallery](/images/gallery-16.png) | Search for a Google Maps Engine map in the Google Earth Gallery.* |
-| ![WMS](/images/overlay-16.png) | Pick a layer from the selected map and it will be loaded as a WMS overlay to the QGIS Canvas. ** |
+| ![WMS](/images/overlay-16.png) | View a layer from the selected map as a WMS overlay in QGIS. ** |
 | ![View in GME](/images/maps_engine-16.png) | View the selected map or layer in Google Maps Engine in a new browser tab. ** |
 | ![View in Google Maps](/images/maps-16.png) | View the selected map in a Google Maps viewer in a new browser tab. The url includes a short-lived access token allowing access to private maps. ** |
 | ![Copy to clipboard](/images/link-16.png) | Copy the link to the WMS service url to clipboard. The url includes a short-lived access token allowing access to private maps. ** |
