@@ -7,6 +7,9 @@ Google Maps Engine Connector for QGIS allows your to authenticate with your
 Google Account, list maps you have access to and view and interact with them
 within QGIS.
 
+[Learn more about Google Maps Engine](
+http://www.google.com/enterprise/mapsearth/products/mapsengine.html)
+
 The connector is provided by Google for public use and modification,
 but is not covered under the Google Maps Engine
 [service level agreement](
