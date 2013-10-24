@@ -51,6 +51,16 @@ available. You can download the new version of the connector by clicking on the
 notification. You will also see an update notification when you open the QGIS
 plugin manager.
 
+Contributions
+-------------
+
+Contributions are welcomed. You can submit a pull request via GitHub.
+
+For your first contribution, you will need to fill out one of the contributor license agreements:
+
+  * If you are the copyright holder, you will need to agree to the <a href="https://developers.google.com/open-source/cla/individual?csw=1">individual contributor license agreement</a>, which can be completed online.
+  * If your organization is the copyright holder, the organization will need to agree to the <a href="http://code.google.com/legal/corporate-cla-v1.0.html">corporate contributor license agreement</a>. (If the copyright holder for your code has already completed the agreement in connection with another Google open source project, it does not need to be completed again.)
+
 
 License
 -------
