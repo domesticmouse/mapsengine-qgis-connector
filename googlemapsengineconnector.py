@@ -297,6 +297,21 @@ class GoogleMapsEngineConnector:
         return True
     return False
 
+  def getFeatures(self, layer, selected=True):
+    """ Return the features from the given layer.
+
+    Args:
+      layer: QgsVectorLayer
+      selected: Return only the selected features from the layer
+    Returns:
+      The features for the given layer.  Returns the all the features from the layer
+      if selected=False else returns only the selected features (default)
+    """
+    if selected:
+        return iter(layer.selectedFeatures())
+    else:
+        return layer.getFeatures()
+
   def getAssetsFromLayer(self, layer, selected_only=True):
     """Creates Google Maps Engine assets from vector layer.
 
@@ -306,36 +321,25 @@ class GoogleMapsEngineConnector:
     Returns:
       gme_map.Map and a list of gme_layer.Layer objects
     """
+
     gmeMap = None
     gmeLayers = []
-    if self.isGmeConnectorLayer(layer):
-      resourceTypeIndex = layer.dataProvider().fieldNameIndex(
-          'Resource Type')
-      resourceIdIndex = layer.dataProvider().fieldNameIndex(
-          'Resource Identifier')
-      resourceNameIndex = layer.dataProvider().fieldNameIndex(
-          'Resource Name')
-      dataTypeIndex = layer.dataProvider().fieldNameIndex(
-          'Data Source Type')
-      if selected_only:
-        selectedFeatures = layer.selectedFeatures()
-      else:
-        selectedFeatures = layer.getFeatures()
-      if selectedFeatures:
-        for feature in selectedFeatures:
-          attributes = feature.attributes()
-          resourceType = attributes[resourceTypeIndex]
-          if resourceType == 'map':
-            mapId = attributes[resourceIdIndex]
-            mapName = attributes[resourceNameIndex]
-            gmeMap = gme_map.Map(id=mapId, name=mapName)
-          elif resourceType == 'layer':
-            layerId = attributes[resourceIdIndex]
-            layerName = attributes[resourceNameIndex]
-            layerDataSource = attributes[dataTypeIndex]
-            gmeLayer = gme_layer.Layer(id=layerId, name=layerName,
-                                       datasourceType=layerDataSource)
-            gmeLayers.append(gmeLayer)
+
+    if not self.isGmeConnectorLayer(layer):
+        return gmeMap, gmeLayers
+
+    for feature in self.getFeatures(layer, selected_only):
+      resourceType = feature['Resource Type']
+      name = feature['Resource Name']
+      resourceId = feature['Resource Identifier']
+
+      if resourceType == 'map':
+        gmeMap = gme_map.Map(id=resourceId, name=name)
+      elif resourceType == 'layer':
+        layerDataSource = feature['Data Source Type']
+        gmeLayer = gme_layer.Layer(id=resourceId, name=name,
+                                   datasourceType=layerDataSource)
+        gmeLayers.append(gmeLayer)
     return gmeMap, gmeLayers
 
   def doSignInOrOut(self, checked):
