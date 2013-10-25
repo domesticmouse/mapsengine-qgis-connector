@@ -297,7 +297,16 @@ class GoogleMapsEngineConnector:
         return True
     return False
 
-  def getFeatures(layer, selected):
+  def getFeatures(self, layer, selected=True):
+    """ Return the features from the given layer.
+
+    Args:
+      layer: QgsVectorLayer
+      selected: Return only the selected features from the layer
+    Returns:
+      The features for the given layer.  Returns the all the features from the layer
+      if selected=False else returns only the selected features (default)
+    """
     if selected:
         return iter(layer.selectedFeatures())
     else:
@@ -312,11 +321,12 @@ class GoogleMapsEngineConnector:
     Returns:
       gme_map.Map and a list of gme_layer.Layer objects
     """
-    if not self.isGmeConnectorLayer(layer):
-        return
 
     gmeMap = None
     gmeLayers = []
+
+    if not self.isGmeConnectorLayer(layer):
+        return gmeMap, gmeLayers
 
     for feature in self.getFeatures(layer, selected_only):
       resourceType = feature['Resource Type']
