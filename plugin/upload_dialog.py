@@ -22,7 +22,9 @@ import tempfile
 import webbrowser
 from PyQt4.QtCore import QCoreApplication
 from PyQt4.QtGui import QDialog
-from qgis.core import QgsMessageLog, QgsVectorFileWriter, QgsCoordinateReferenceSystem
+from qgis.core import (QgsMessageLog, QgsVectorFileWriter,
+                       QgsCoordinateReferenceSystem, QgsRasterPipe,
+                       QgsRasterFileWriter, QgsMapLayer)
 from qgis.gui import QgsMessageBar
 import gme_api
 import oauth2_utils
@@ -45,7 +47,6 @@ class Dialog(QDialog, Ui_Dialog):
 
     # Set defaults
     self.lineEditAcl.setText('Map Editors')
-    self.lineEditEncoding.setText('UTF-8')
     self.lineEditTags.setText('QGIS Desktop')
 
     # Initialize
@@ -81,19 +82,84 @@ class Dialog(QDialog, Ui_Dialog):
     self.lineEditLayerName.setReadOnly(True)
     self.lineEditLocalPath.setReadOnly(True)
 
-  def getNonGmeLayersFromCanvas(self):
-    """Fetch only layers which are not created by this plugin."""
-    validLayers = []
-    layers = self.iface.mapCanvas().layers()
-    for layer in layers:
-      # Check that the type is VectorLayer
-      if layer.type() == 0:
-        # Ensure that the layer does not have a field called 'Resource Type'
-        # as we are looking only for layers not created by this plugin.
-        if layer.dataProvider().fieldNameIndex('Resource Type') == -1:
-          validLayers.append(layer)
+  def extractVectorLayer(self, tempDir):
+    """Extract the features from the current layer to a temporary shapefile.
 
-    return validLayers
+    Extracts a shapefile that would be uploaded to maps engine. This approach
+    ensures that we are able to upload any layer that QGIS has ability to read,
+    including CSV files, databases etc.
+
+    Args:
+      tempDir: str, path of directory where to extract the shapefile.
+    Returns:
+      a dictionary with file names as keys and file path as values.
+    """
+    layerName = unicode(self.lineEditLayerName.text())
+    tempShpPath = os.path.join(tempDir, layerName + '.shp')
+
+    outputCrs = QgsCoordinateReferenceSystem(
+        4326, QgsCoordinateReferenceSystem.EpsgCrsId)
+    currentLayer = self.iface.mapCanvas().currentLayer()
+    self.iface.messageBar().pushMessage(
+        'Google Maps Engine Connector',
+        'Extracting data to a temporary shapefile. Please wait...',
+        level=QgsMessageBar.INFO)
+    QCoreApplication.processEvents()
+    error = QgsVectorFileWriter.writeAsVectorFormat(
+        currentLayer, tempShpPath, 'utf-8',
+        outputCrs, 'ESRI Shapefile')
+
+    if error != QgsVectorFileWriter.NoError:
+      return
+
+    filesToUpload = {}
+    for ext in ('shp', 'shx', 'dbf', 'prj'):
+      fileName = '%s.%s' % (layerName, ext)
+      filePath = os.path.join(tempDir, fileName)
+      filesToUpload[fileName] = filePath
+    return filesToUpload
+
+  def extractRasterLayer(self, tempDir):
+    """Extract the raster from the current layer to a temporary GeoTiff file.
+
+    Extracts a geotiff file that would be uploaded to maps engine. This approach
+    ensures that we are able to upload any layer that QGIS has ability to read.
+
+    Args:
+      tempDir: str, path of directory where to extract the shapefile.
+    Returns:
+      a dictionary with file names as keys and file path as values.
+    """
+    layerName = unicode(self.lineEditLayerName.text())
+    tempTifPath = os.path.join(tempDir, layerName + '.tif')
+
+    currentLayer = self.iface.mapCanvas().currentLayer()
+    self.iface.messageBar().pushMessage(
+        'Google Maps Engine Connector',
+        'Extracting data to a temporary geotiff file. Please wait...',
+        level=QgsMessageBar.INFO)
+    QCoreApplication.processEvents()
+
+    pipe = QgsRasterPipe()
+    provider = currentLayer.dataProvider()
+    pipe.set(provider.clone())
+
+    rasterWriter = QgsRasterFileWriter(tempTifPath)
+    xSize = provider.xSize()
+    ySize = provider.ySize()
+    if xSize and ySize:
+      error = rasterWriter.writeRaster(
+          pipe, xSize, ySize, provider.extent(), provider.crs())
+      if error != QgsRasterFileWriter.NoError:
+        return
+    else:
+      return
+
+    filesToUpload = {}
+    fileName = layerName + '.tif'
+    filePath = os.path.join(tempDir, fileName)
+    filesToUpload[fileName] = filePath
+    return filesToUpload
 
   def accept(self):
     """Uploads the selected layer to maps engine."""
@@ -106,48 +172,26 @@ class Dialog(QDialog, Ui_Dialog):
     projectId = unicode(
         self.comboBoxProjects.itemData(currentProject))
 
-    currentLayer = self.lineEditLayerName.text()
-    layerName = unicode(self.lineEditLayerName.text())
-
     acl = unicode(self.lineEditAcl.text())
-    encoding = unicode(self.lineEditEncoding.text())
     tags = unicode(self.lineEditTags.text())
 
-    # Extract the features from the current layer to a temporary shapefile.
-    # This shapefile would be uploaded to maps engine. This approach ensures
-    # that we are able to upload any layer that QGIS has ability to read,
-    # including CSV files, databases etc.
-
     # TODO: use with tempfile.TemporaryDirectory() instead of try/finally.
+    tempDir = tempfile.mkdtemp()
     try:
-      tempDir = tempfile.mkdtemp()
-      tempShpPath = os.path.join(tempDir, layerName + '.shp')
-
-      outputCrs = QgsCoordinateReferenceSystem(
-          4326, QgsCoordinateReferenceSystem.EpsgCrsId)
       currentLayer = self.iface.mapCanvas().currentLayer()
-      self.iface.messageBar().pushMessage(
-          'Google Maps Engine Connector',
-          'Extracting data to a temporary shapefile. Please wait...',
-          level=QgsMessageBar.INFO)
-      error = QgsVectorFileWriter.writeAsVectorFormat(
-          currentLayer, tempShpPath, encoding.lower(),
-          outputCrs, 'ESRI Shapefile')
+      if currentLayer.type() == QgsMapLayer.VectorLayer:
+        filesToUpload = self.extractVectorLayer(tempDir)
+      elif currentLayer.type() == QgsMapLayer.RasterLayer:
+        filesToUpload = self.extractRasterLayer(tempDir)
 
-      if error != QgsVectorFileWriter.NoError:
+      if not filesToUpload:
         self.iface.messageBar().clearWidgets()
         self.iface.messageBar().pushMessage(
-            'Google Maps Engine Connector', 'Extraction to shapefile failed.',
+            'Google Maps Engine Connector', 'Extraction failed.',
             level=QgsMessageBar.CRITICAL, duration=3)
-        QgsMessageLog.logMessage('Extraction to shapefile failed.',
-                                 'GMEConnector', QgsMessageLog.CRITICAL)
-        return None
-
-      filesToUpload = {}
-      for ext in ('shp', 'shx', 'dbf', 'prj'):
-        fileName = '%s.%s' % (layerName, ext)
-        filePath = os.path.join(tempDir, fileName)
-        filesToUpload[fileName] = filePath
+        QgsMessageLog.logMessage('Extraction failed', 'GMEConnector',
+                                 QgsMessageLog.CRITICAL)
+        return
 
       data = {}
       data['name'] = unicode(self.lineEditDestinationName.text())
@@ -156,11 +200,17 @@ class Dialog(QDialog, Ui_Dialog):
       data['sharedAccessList'] = acl
       if tags:
         data['tags'] = [unicode(x) for x in tags.split(',')]
-      data['sourceEncoding'] = encoding
+
+      if currentLayer.type() == QgsMapLayer.VectorLayer:
+        data_type = 'tables'
+      elif currentLayer.type() == QgsMapLayer.RasterLayer:
+        # attribution to be specified for raster layers only.
+        data['attribution'] = unicode(self.lineEditAttribution.text())
+        data_type = 'rasters'
 
       token = oauth2_utils.getToken()
       api = gme_api.GoogleMapsEngineAPI(self.iface)
-      assetId = api.postCreateAsset(projectId, data, token)
+      assetId = api.postCreateAsset(projectId, data_type, data, token)
       if not assetId:
         self.iface.messageBar().clearWidgets()
         self.iface.messageBar().pushMessage(
@@ -180,7 +230,7 @@ class Dialog(QDialog, Ui_Dialog):
         QCoreApplication.processEvents()
 
         content = open(filesToUpload[fileName]).read()
-        api.postUploadFile(assetId, fileName, content, token)
+        api.postUploadFile(assetId, data_type, fileName, content, token)
 
       self.iface.messageBar().clearWidgets()
 

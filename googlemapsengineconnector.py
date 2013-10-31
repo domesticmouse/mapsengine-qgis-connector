@@ -215,9 +215,9 @@ class GoogleMapsEngineConnector:
     del self.toolBar
 
     # Revoke the token on exit
-    oauth2_utils.revokeToken()
+    #oauth2_utils.revokeToken()
     # Remove the access credientials from settings
-    settings.clear()
+    #settings.clear()
 
   def handleAuthChange(self, success, token, userName):
     """Enable or disable tools in response to an authStateChange event.
@@ -274,8 +274,8 @@ class GoogleMapsEngineConnector:
       elif gmeLayers and self.token:
         self.viewInGme.setEnabled(True)
 
-      # If the currently selected layer is a vector layer
-      if (currentLayer.type() == 0 and
+      # If the currently selected layer is a vector or a raster layer
+      if ((currentLayer.type() == 0 or currentLayer.type() == 1) and
           not self.isGmeConnectorLayer(currentLayer)
           and self.token):
         self.upload.setEnabled(True)
@@ -298,14 +298,14 @@ class GoogleMapsEngineConnector:
     return False
 
   def getFeatures(self, layer, selected=True):
-    """ Return the features from the given layer.
+    """Return the features from the given layer.
 
     Args:
       layer: QgsVectorLayer
       selected: Return only the selected features from the layer
     Returns:
-      The features for the given layer.  Returns the all the features from the layer
-      if selected=False else returns only the selected features (default)
+      The features for the given layer.  Returns the all the features from the
+      layer if selected=False else returns only the selected features (default)
     """
     if selected:
         return iter(layer.selectedFeatures())
@@ -321,7 +321,6 @@ class GoogleMapsEngineConnector:
     Returns:
       gme_map.Map and a list of gme_layer.Layer objects
     """
-
     gmeMap = None
     gmeLayers = []
 

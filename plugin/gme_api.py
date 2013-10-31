@@ -158,17 +158,18 @@ class GoogleMapsEngineAPI(object):
     else:
       return None
 
-  def postCreateAsset(self, projectId, data, token):
+  def postCreateAsset(self, projectId, data_type, data, token):
     """Create a maps engine asset.
 
     Args:
       projectId: str, id of the maps engine project.
+      data_type: str, type of asset to create, either 'tables' or 'rasters'.
       data: dict, data to send with the request.
       token: OAuth2Token object, authentication token.
     Returns:
       asset id of the newly created asset if successful, None if failed.
     """
-    baseUrl = '%s/%s/%s' % (GME_API_TT_URI, 'tables', 'upload')
+    baseUrl = '%s/%s/%s' % (GME_API_TT_URI, data_type, 'upload')
     params = {'projectId': projectId}
     requestUrl = '%s?%s' % (baseUrl, urllib.urlencode(params))
     results = self.makeGoogleMapsEngineRequest(
@@ -182,18 +183,19 @@ class GoogleMapsEngineAPI(object):
     else:
       return None
 
-  def postUploadFile(self, assetId, fileName, content, token):
+  def postUploadFile(self, assetId, data_type, fileName, content, token):
     """Upload the given file to maps engine.
 
     Args:
       assetId: str, id of the maps engine asset.
+      data_type: str, type of file to upload, either 'tables' or 'rasters'.
       fileName: str, name of the file to upload.
       content: str, content of the file to be uploaded.
       token: OAuth2Token object, authentication token.
     Returns:
       response from the server.
     """
-    baseUrl = '%s/%s/%s/files' % (GME_API_TT_UPLOAD_URI, 'tables', assetId)
+    baseUrl = '%s/%s/%s/files' % (GME_API_TT_UPLOAD_URI, data_type, assetId)
     params = {'filename': fileName}
     requestUrl = '%s?%s' % (baseUrl, urllib.urlencode(params))
 

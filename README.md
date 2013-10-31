@@ -35,7 +35,7 @@ Overview of the Tools
 | ![View in GME](/images/maps_engine-16.png) | View the selected map or layer in Google Maps Engine in a new browser tab. ** |
 | ![View in Google Maps](/images/maps-16.png) | View the selected map in a Google Maps viewer in a new browser tab. The url includes a short-lived access token allowing access to private maps. ** |
 | ![Copy to clipboard](/images/link-16.png) | Copy the link to the WMS service url to clipboard. The url includes a short-lived access token allowing access to private maps. ** |
-| ![Upload](/images/upload_item-16.png) | Upload the selected vector layer to Google Maps Engine. *** |
+| ![Upload](/images/upload_item-16.png) | Upload the selected vector or raster layer to Google Maps Engine. *** |
 | More | Access *Advanced Settings* and *About dialog*. |
 
 \* *Enabled after a successful login*.
