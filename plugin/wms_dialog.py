@@ -16,9 +16,12 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
-from PyQt4.QtGui import QDialog, QDialogButtonBox
-from qgis.core import (QgsRasterLayer, QgsMapLayerRegistry,
-                       QgsDataSourceURI, QgsMessageLog)
+from PyQt4.QtGui import QDialog
+from PyQt4.QtGui import QDialogButtonBox
+from qgis.core import QgsRasterLayer
+from qgis.core import QgsMapLayerRegistry
+from qgis.core import QgsDataSourceURI
+from qgis.core import QgsMessageLog
 from qgis.gui import QgsMessageBar
 import oauth2_utils
 import settings

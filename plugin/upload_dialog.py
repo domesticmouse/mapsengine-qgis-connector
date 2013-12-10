@@ -22,9 +22,12 @@ import tempfile
 import webbrowser
 from PyQt4.QtCore import QCoreApplication
 from PyQt4.QtGui import QDialog
-from qgis.core import (QgsMessageLog, QgsVectorFileWriter,
-                       QgsCoordinateReferenceSystem, QgsRasterPipe,
-                       QgsRasterFileWriter, QgsMapLayer)
+from qgis.core import QgsMessageLog
+from qgis.core import QgsVectorFileWriter
+from qgis.core import QgsCoordinateReferenceSystem
+from qgis.core import QgsRasterPipe
+from qgis.core import QgsRasterFileWriter
+from qgis.core import QgsMapLayer
 from qgis.gui import QgsMessageBar
 import gme_api
 import oauth2_utils
@@ -85,14 +88,15 @@ class Dialog(QDialog, Ui_Dialog):
   def extractVectorLayer(self, tempDir):
     """Extract the features from the current layer to a temporary shapefile.
 
-    Extracts a shapefile that would be uploaded to maps engine. This approach
+    Extracts a shapefile that can be uploaded to maps engine. This approach
     ensures that we are able to upload any layer that QGIS has ability to read,
     including CSV files, databases etc.
 
     Args:
       tempDir: str, path of directory where to extract the shapefile.
     Returns:
-      a dictionary with file names as keys and file path as values.
+      a dictionary with file names as keys and file path as values or None
+      if there is error.
     """
     layerName = unicode(self.lineEditLayerName.text())
     tempShpPath = os.path.join(tempDir, layerName + '.shp')
@@ -110,6 +114,8 @@ class Dialog(QDialog, Ui_Dialog):
         outputCrs, 'ESRI Shapefile')
 
     if error != QgsVectorFileWriter.NoError:
+      QgsMessageLog.logMessage(error, 'GMEConnector',
+                               QgsMessageLog.CRITICAL)
       return
 
     filesToUpload = {}
@@ -122,7 +128,7 @@ class Dialog(QDialog, Ui_Dialog):
   def extractRasterLayer(self, tempDir):
     """Extract the raster from the current layer to a temporary GeoTiff file.
 
-    Extracts a geotiff file that would be uploaded to maps engine. This approach
+    Extracts a geotiff file that can be uploaded to maps engine. This approach
     ensures that we are able to upload any layer that QGIS has ability to read.
 
     Args:
@@ -151,6 +157,8 @@ class Dialog(QDialog, Ui_Dialog):
       error = rasterWriter.writeRaster(
           pipe, xSize, ySize, provider.extent(), provider.crs())
       if error != QgsRasterFileWriter.NoError:
+        QgsMessageLog.logMessage(error, 'GMEConnector',
+                                 QgsMessageLog.CRITICAL)
         return
     else:
       return
@@ -183,6 +191,10 @@ class Dialog(QDialog, Ui_Dialog):
         filesToUpload = self.extractVectorLayer(tempDir)
       elif currentLayer.type() == QgsMapLayer.RasterLayer:
         filesToUpload = self.extractRasterLayer(tempDir)
+      else:
+        QgsMessageLog.logMessage('Unsupported layer type.', 'GMEConnector',
+                                 QgsMessageLog.CRITICAL)
+        filesToUpload = []
 
       if not filesToUpload:
         self.iface.messageBar().clearWidgets()
@@ -207,6 +219,9 @@ class Dialog(QDialog, Ui_Dialog):
         # attribution to be specified for raster layers only.
         data['attribution'] = unicode(self.lineEditAttribution.text())
         data_type = 'rasters'
+      else:
+        QgsMessageLog.logMessage('Unsupported layer type.', 'GMEConnector',
+                                 QgsMessageLog.CRITICAL)
 
       token = oauth2_utils.getToken()
       api = gme_api.GoogleMapsEngineAPI(self.iface)

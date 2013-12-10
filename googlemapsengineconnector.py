@@ -17,15 +17,22 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 import webbrowser
-
 from PyQt4.QtCore import QCoreApplication
-from PyQt4.QtGui import QAction, QIcon, QLabel, QMessageBox, QApplication
+from PyQt4.QtGui import QAction
+from PyQt4.QtGui import QApplication
+from PyQt4.QtGui import QIcon
+from PyQt4.QtGui import QLabel
+from PyQt4.QtGui import QMessageBox
 from qgis.gui import QgsMessageBar
-
-from plugin import (settings, oauth2_utils,
-                    signin_dialog, wms_dialog, upload_dialog,
-                    search_gme_dialog, more_dialog)
-from plugin.datamodel import gme_map, gme_layer
+from plugin import more_dialog
+from plugin import oauth2_utils
+from plugin import search_gme_dialog
+from plugin import settings
+from plugin import signin_dialog
+from plugin import upload_dialog
+from plugin import wms_dialog
+from plugin.datamodel import gme_layer
+from plugin.datamodel import gme_map
 # Initialize Qt resources
 import resources_rc
 
@@ -156,7 +163,8 @@ class GoogleMapsEngineConnector:
                                    'Google Maps Engine Connector'))
 
     # Create labels for the toolbar
-    self.searchlabel = QLabel(QCoreApplication.translate('GMEConnector', 'Find'))
+    self.searchlabel = QLabel(
+        QCoreApplication.translate('GMEConnector', 'Find'))
     self.viewlabel = QLabel(QCoreApplication.translate('GMEConnector', 'View'))
     self.interactlabel = QLabel(QCoreApplication.translate(
         'GMEConnector', 'Interact'))
@@ -274,8 +282,8 @@ class GoogleMapsEngineConnector:
       elif gmeLayers and self.token:
         self.viewInGme.setEnabled(True)
 
-      # If the currently selected layer is a vector or a raster layer
-      if ((currentLayer.type() == 0 or currentLayer.type() == 1) and
+      # If the currently selected layer is a vector or raster layer
+      if (currentLayer.type() in (0, 1) and
           not self.isGmeConnectorLayer(currentLayer)
           and self.token):
         self.upload.setEnabled(True)
@@ -304,13 +312,13 @@ class GoogleMapsEngineConnector:
       layer: QgsVectorLayer
       selected: Return only the selected features from the layer
     Returns:
-      The features for the given layer.  Returns the all the features from the
-      layer if selected=False else returns only the selected features (default)
+      The features for the given layer.  Returns the all features from the
+      layer if selected=False else returns only the selected features (default).
     """
     if selected:
-        return iter(layer.selectedFeatures())
+      return iter(layer.selectedFeatures())
     else:
-        return layer.getFeatures()
+      return layer.getFeatures()
 
   def getAssetsFromLayer(self, layer, selected_only=True):
     """Creates Google Maps Engine assets from vector layer.
@@ -325,7 +333,7 @@ class GoogleMapsEngineConnector:
     gmeLayers = []
 
     if not self.isGmeConnectorLayer(layer):
-        return gmeMap, gmeLayers
+      return gmeMap, gmeLayers
 
     for feature in self.getFeatures(layer, selected_only):
       resourceType = feature['Resource Type']

@@ -19,15 +19,23 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 import codecs
 import cStringIO
 import csv
-
-from PyQt4.QtCore import QCoreApplication, QVariant, QSettings
-from PyQt4.QtGui import (QDialog, QAbstractItemView, QTableWidgetItem,
-                         QDialogButtonBox, QApplication)
-from qgis.core import (QgsMessageLog, QgsGeometry, QgsPoint, QgsVectorLayer,
-                       QgsCoordinateReferenceSystem, QgsField, QgsFeature,
-                       QgsMapLayerRegistry)
+from PyQt4.QtCore import QCoreApplication
+from PyQt4.QtCore import QSettings
+from PyQt4.QtCore import QVariant
+from PyQt4.QtGui import QAbstractItemView
+from PyQt4.QtGui import QApplication
+from PyQt4.QtGui import QDialog
+from PyQt4.QtGui import QDialogButtonBox
+from PyQt4.QtGui import QTableWidgetItem
+from qgis.core import QgsCoordinateReferenceSystem
+from qgis.core import QgsFeature
+from qgis.core import QgsField
+from qgis.core import QgsGeometry
+from qgis.core import QgsMapLayerRegistry
+from qgis.core import QgsMessageLog
+from qgis.core import QgsPoint
+from qgis.core import QgsVectorLayer
 from qgis.gui import QgsMessageBar
-
 import gme_api
 import oauth2_utils
 from search_gme_dialog_base import Ui_Dialog
@@ -68,6 +76,7 @@ class Dialog(QDialog, Ui_Dialog):
     self.iface.messageBar().clearWidgets()
 
   def loadInitialMaps(self):
+    """Populates the dialog with maps."""
     self.projectDict = settings.read('gmeconnector/PROJECTS')
     self.comboBox.clear()
     for key, val in self.projectDict.items():
@@ -88,6 +97,7 @@ class Dialog(QDialog, Ui_Dialog):
       self.loadMapsForProject(self.projectDict.iterkeys().next())
 
   def searchLocalDirectory(self):
+    """Simple search implementation based on substring match."""
     search_term = unicode(self.lineEdit.text())
     currentIndex = self.comboBox.currentIndex()
     currentProjectId = unicode(self.comboBox.itemData(currentIndex))
@@ -110,6 +120,11 @@ class Dialog(QDialog, Ui_Dialog):
       self.resultLabel.setText(labelText)
 
   def populateTable(self, maps):
+    """Populates the table widget with map information.
+
+    Args:
+      maps: list, of gme_map.Map objects.
+    """
     numrows = len(maps)
     numcols = 2
     self.tableWidget.setSortingEnabled(True)
@@ -133,10 +148,20 @@ class Dialog(QDialog, Ui_Dialog):
       row_index += 1
 
   def loadMapsForIndex(self, index):
+    """Loads map for thegiven index.
+
+    Args:
+      index: int, index of the comboBox widget.
+    """
     projectId = unicode(self.comboBox.itemData(index))
     self.loadMapsForProject(projectId)
 
   def loadMapsForProject(self, projectId):
+    """Loads maps for the given project id.
+
+    Args:
+      projectId: str, id of the maps engine project.
+    """
     index = self.comboBox.findData(projectId)
     self.comboBox.setCurrentIndex(index)
     settings.write('gmeconnector/LAST_USED_PROJECT', projectId)
@@ -144,7 +169,7 @@ class Dialog(QDialog, Ui_Dialog):
     token = oauth2_utils.getToken()
     self.maps = api.getMapsByProjectId(projectId, token)
     self.populateTable(self.maps)
-    if len(self.maps) == 0:
+    if not self.maps:
       labelText = 'No maps found from account %s' % self.projectDict[projectId]
     else:
       labelText = 'Displaying %d maps from account %s' % (
@@ -152,6 +177,7 @@ class Dialog(QDialog, Ui_Dialog):
     self.resultLabel.setText(labelText)
 
   def handleSelectionChanged(self):
+    """Enables the OK button when a row is selected."""
     selection = self.tableWidget.selectionModel()
     selectionList = selection.selectedRows()
     if selectionList:
@@ -165,6 +191,7 @@ class Dialog(QDialog, Ui_Dialog):
       self.okButton.setEnabled(False)
 
   def copyToClipBoard(self):
+    """Copies the selection to clipboard."""
     selection = self.tableWidget.selectionModel()
     selectionList = selection.selectedRows()
     copyText = cStringIO.StringIO()

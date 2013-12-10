@@ -18,7 +18,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 import webbrowser
 
-from PyQt4.QtCore import QFile, QIODevice, QTextStream
+from PyQt4.QtCore import QFile
+from PyQt4.QtCore import QIODevice
+from PyQt4.QtCore import QTextStream
 from PyQt4.QtGui import QDialog
 from PyQt4.QtWebKit import QWebPage
 

@@ -21,7 +21,9 @@ import urllib
 import urllib2
 from qgis.core import QgsMessageLog
 from qgis.gui import QgsMessageBar
-from datamodel import gme_layer, gme_map, gme_maplist
+from datamodel import gme_layer
+from datamodel import gme_map
+from datamodel import gme_maplist
 
 GME_API_BASE_URI = 'https://www.googleapis.com/mapsengine/v1'
 GME_API_TT_URI = 'https://www.googleapis.com/mapsengine/create_tt'
@@ -169,6 +171,12 @@ class GoogleMapsEngineAPI(object):
     Returns:
       asset id of the newly created asset if successful, None if failed.
     """
+    if data_type not in ['tables', 'rasters']:
+      errorMsg = 'Unsupported data type %s.' % data_type
+      QgsMessageLog.logMessage(
+          errorMsg, 'GMEConnector', QgsMessageLog.CRITICAL)
+      return
+
     baseUrl = '%s/%s/%s' % (GME_API_TT_URI, data_type, 'upload')
     params = {'projectId': projectId}
     requestUrl = '%s?%s' % (baseUrl, urllib.urlencode(params))
