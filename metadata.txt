@@ -8,3 +8,9 @@ homepage=http://maps.google.com/engine
 author=Google
 email=ujaval@google.com
 repository=https://github.com/googlemaps/mapsengine-qgis-connector
+changelog=1.1
+    - Changed API version from create_tt to v1.
+    - Added support for raster upload.
+    - Trigger sign-in dialog after detecting change in client_secret and
+      client_id.
+    - Better defaults for WMS overlays.
