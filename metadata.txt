@@ -14,3 +14,4 @@ changelog=1.1
     - Trigger sign-in dialog after detecting change in client_secret and
       client_id.
     - Better defaults for WMS overlays.
+    - Merged pull request #1 from NathanW.
