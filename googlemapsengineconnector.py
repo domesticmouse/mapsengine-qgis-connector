@@ -223,9 +223,9 @@ class GoogleMapsEngineConnector:
     del self.toolBar
 
     # Revoke the token on exit
-    #oauth2_utils.revokeToken()
+    oauth2_utils.revokeToken()
     # Remove the access credientials from settings
-    #settings.clear()
+    settings.clear()
 
   def handleAuthChange(self, success, token, userName):
     """Enable or disable tools in response to an authStateChange event.
@@ -259,7 +259,7 @@ class GoogleMapsEngineConnector:
 
   def handleSelectionChange(self):
     """Enables or disables tools in response to changes in selection."""
-    # Disable all tools first.
+    # Disable all the tools first.
     # We will enable them one by one if certain criteria are met.
     self.upload.setEnabled(False)
     self.viewInGoogleMaps.setEnabled(False)
@@ -405,6 +405,7 @@ class GoogleMapsEngineConnector:
     self.wmsDialog = wms_dialog.Dialog(self.iface)
     self.wmsDialog.populateLayers(gmeMap, gmeLayers)
     self.wmsDialog.loadCrsForIndex(0)
+    self.wmsDialog.loadFormatForIndex(0)
     self.wmsDialog.exec_()
 
   def doShareSecureLink(self):
@@ -464,6 +465,11 @@ class GoogleMapsEngineConnector:
 
   def doShowMore(self):
     """Show the more dialog."""
+    # We want to detect if the client_id or client_secret is changed and trigger
+    # the login dialog if a change is detected.
+    # Read the client_id and client_secret.
+    pre_client_id = settings.read('gmeconnector/CLIENT_ID')
+    pre_client_secret = settings.read('gmeconnector/CLIENT_SECRET')
     self.moreDialog = more_dialog.Dialog(self.iface)
     if self.token:
       self.moreDialog.groupBoxAccount.setEnabled(True)
@@ -471,6 +477,19 @@ class GoogleMapsEngineConnector:
     else:
       self.moreDialog.groupBoxAccount.setEnabled(False)
     self.moreDialog.exec_()
+    # Read the client_id and client_secret again to compare.
+    post_client_id = settings.read('gmeconnector/CLIENT_ID')
+    post_client_secret = settings.read('gmeconnector/CLIENT_SECRET')
+
+    # If both client_id and client_secret are not empty and if either one has
+    # changed, trigger the sign-in dialog.
+    if (post_client_id and post_client_secret and
+        (post_client_id != pre_client_id or
+         post_client_secret != pre_client_secret)):
+      self.signInDlg.setInitialUrl()
+      result = self.signInDlg.exec_()
+      if not result:
+        self.handleAuthChange(False, None, '')
 
   def doUpload(self):
     """Show the upload dialog."""

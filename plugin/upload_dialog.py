@@ -177,8 +177,6 @@ class Dialog(QDialog, Ui_Dialog):
         level=QgsMessageBar.INFO)
     QCoreApplication.processEvents()
     currentProject = self.comboBoxProjects.currentIndex()
-    projectId = unicode(
-        self.comboBoxProjects.itemData(currentProject))
 
     acl = unicode(self.lineEditAcl.text())
     tags = unicode(self.lineEditTags.text())
@@ -206,10 +204,12 @@ class Dialog(QDialog, Ui_Dialog):
         return
 
       data = {}
+      data['projectId'] = unicode(
+          self.comboBoxProjects.itemData(currentProject))
       data['name'] = unicode(self.lineEditDestinationName.text())
       data['description'] = unicode(self.lineEditDescription.text())
       data['files'] = [{'filename': x} for x in filesToUpload]
-      data['sharedAccessList'] = acl
+      data['draftAccessList'] = acl
       if tags:
         data['tags'] = [unicode(x) for x in tags.split(',')]
 
@@ -225,7 +225,7 @@ class Dialog(QDialog, Ui_Dialog):
 
       token = oauth2_utils.getToken()
       api = gme_api.GoogleMapsEngineAPI(self.iface)
-      assetId = api.postCreateAsset(projectId, data_type, data, token)
+      assetId = api.postCreateAsset(data_type, data, token)
       if not assetId:
         self.iface.messageBar().clearWidgets()
         self.iface.messageBar().pushMessage(
@@ -238,6 +238,7 @@ class Dialog(QDialog, Ui_Dialog):
       msg = 'Asset creation successful. Asset ID: %s' % assetId
       self.iface.messageBar().pushMessage(
           'Google Maps Engine Connector', msg, level=QgsMessageBar.INFO)
+      QgsMessageLog.logMessage(msg, 'GMEConnector', QgsMessageLog.INFO)
       for fileName in filesToUpload:
         msg = 'Uploading file %s' % filesToUpload[fileName]
         self.iface.messageBar().pushMessage(

@@ -26,8 +26,7 @@ from datamodel import gme_map
 from datamodel import gme_maplist
 
 GME_API_BASE_URI = 'https://www.googleapis.com/mapsengine/v1'
-GME_API_TT_URI = 'https://www.googleapis.com/mapsengine/create_tt'
-GME_API_TT_UPLOAD_URI = 'https://www.googleapis.com/upload/mapsengine/create_tt'
+GME_API_UPLOAD_URI = 'https://www.googleapis.com/upload/mapsengine/v1'
 
 
 class GoogleMapsEngineAPI(object):
@@ -160,11 +159,10 @@ class GoogleMapsEngineAPI(object):
     else:
       return None
 
-  def postCreateAsset(self, projectId, data_type, data, token):
+  def postCreateAsset(self, data_type, data, token):
     """Create a maps engine asset.
 
     Args:
-      projectId: str, id of the maps engine project.
       data_type: str, type of asset to create, either 'tables' or 'rasters'.
       data: dict, data to send with the request.
       token: OAuth2Token object, authentication token.
@@ -177,9 +175,7 @@ class GoogleMapsEngineAPI(object):
           errorMsg, 'GMEConnector', QgsMessageLog.CRITICAL)
       return
 
-    baseUrl = '%s/%s/%s' % (GME_API_TT_URI, data_type, 'upload')
-    params = {'projectId': projectId}
-    requestUrl = '%s?%s' % (baseUrl, urllib.urlencode(params))
+    requestUrl = '%s/%s/%s' % (GME_API_BASE_URI, data_type, 'upload')
     results = self.makeGoogleMapsEngineRequest(
         requestUrl, token.access_token, data=json.dumps(data))
     if results:
@@ -203,7 +199,7 @@ class GoogleMapsEngineAPI(object):
     Returns:
       response from the server.
     """
-    baseUrl = '%s/%s/%s/files' % (GME_API_TT_UPLOAD_URI, data_type, assetId)
+    baseUrl = '%s/%s/%s/files' % (GME_API_UPLOAD_URI, data_type, assetId)
     params = {'filename': fileName}
     requestUrl = '%s?%s' % (baseUrl, urllib.urlencode(params))
 

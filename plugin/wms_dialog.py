@@ -18,10 +18,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 from PyQt4.QtGui import QDialog
 from PyQt4.QtGui import QDialogButtonBox
-from qgis.core import QgsRasterLayer
-from qgis.core import QgsMapLayerRegistry
 from qgis.core import QgsDataSourceURI
+from qgis.core import QgsMapLayerRegistry
 from qgis.core import QgsMessageLog
+from qgis.core import QgsRasterLayer
 from qgis.gui import QgsMessageBar
 import oauth2_utils
 import settings
@@ -47,14 +47,8 @@ class Dialog(QDialog, Ui_Dialog):
     self.iface = iface
     self.okButton = self.buttonBox.button(QDialogButtonBox.Ok)
     self.okButton.setText('Add Selected to Map')
-    self.comboBoxFormat.addItem('JPEG', 'image/jpeg')
-    self.comboBoxFormat.addItem('PNG', 'image/png')
-    defaultFormat = settings.read('gmeconnector/WMS_IMAGE_FORMAT')
-    if defaultFormat:
-      defaultIndex = self.comboBoxFormat.findText(defaultFormat)
-      if defaultIndex != -1:
-        self.comboBoxFormat.setCurrentIndex(defaultIndex)
     self.comboBoxLayer.activated.connect(self.loadCrsForIndex)
+    self.comboBoxLayer.activated.connect(self.loadFormatForIndex)
 
   def getLayers(self, folders):
     """Fetches layers from the given folders.
@@ -73,6 +67,37 @@ class Dialog(QDialog, Ui_Dialog):
       if folders:
         layers.extend(self.getLayers(folders))
     return layers
+
+  def loadFormatForIndex(self, index):
+    """Loads WMS overlay format for the given index.
+
+    Args:
+      index: int, index of the comboBoxCrs widget.
+    """
+    self.comboBoxFormat.clear()
+    unused_layerId, dataType = self.comboBoxLayer.itemData(index)
+    if dataType == 'image':
+      # Raster overlay default format is JPEG.
+      self.comboBoxFormat.addItem('JPEG', 'image/jpeg')
+      self.comboBoxFormat.addItem('PNG', 'image/png')
+      defaultFormat = settings.read('gmeconnector/WMS_RASTER_FORMAT')
+      if defaultFormat:
+        defaultIndex = self.comboBoxFormat.findText(defaultFormat)
+        if defaultIndex != -1:
+          self.comboBoxFormat.setCurrentIndex(defaultIndex)
+    elif dataType == 'table':
+      # Vector overlay default format is PNG.
+      self.comboBoxFormat.addItem('PNG', 'image/png')
+      self.comboBoxFormat.addItem('JPEG', 'image/jpeg')
+      defaultFormat = settings.read('gmeconnector/WMS_VECTOR_FORMAT')
+      if defaultFormat:
+        defaultIndex = self.comboBoxFormat.findText(defaultFormat)
+        if defaultIndex != -1:
+          self.comboBoxFormat.setCurrentIndex(defaultIndex)
+    else:
+      # Set default format as PNG.
+      self.comboBoxFormat.addItem('PNG', 'image/png')
+      self.comboBoxFormat.addItem('JPEG', 'image/jpeg')
 
   def loadCrsForIndex(self, index):
     """Loads compatible CRSs for the given index.

@@ -54,15 +54,33 @@ class Dialog(QDialog, Ui_Dialog):
     # Other settings
     self.comboBoxProjects.setEnabled(False)
     self.checkBoxDefault.stateChanged.connect(self.comboBoxProjects.setEnabled)
-    self.comboBoxFormat.addItem('JPEG', 'image/jpeg')
-    self.comboBoxFormat.addItem('PNG', 'image/png')
-    defaultFormat = settings.read('gmeconnector/WMS_IMAGE_FORMAT')
+    # Make the default vector overlay format as PNG to make no-data values
+    # transparent.
+    self.comboBoxVectorFormat.addItem('PNG', 'image/png')
+    self.comboBoxVectorFormat.addItem('JPEG', 'image/jpeg')
+    # Make the default raster overlay format as JPEG to make the layer load
+    # faster.
+    self.comboBoxRasterFormat.addItem('JPEG', 'image/jpeg')
+    self.comboBoxRasterFormat.addItem('PNG', 'image/png')
+    defaultVectorFormat = settings.read('gmeconnector/WMS_VECTOR_FORMAT')
+    defaultRasterFormat = settings.read('gmeconnector/WMS_RASTER_FORMAT')
 
-    if defaultFormat:
-      defaultIndex = self.comboBoxFormat.findText(defaultFormat)
-      if defaultIndex != -1:
-        self.comboBoxFormat.setCurrentIndex(defaultIndex)
-    self.comboBoxFormat.currentIndexChanged.connect(self.handleFormatChanged)
+    if defaultVectorFormat:
+      defaultVectorIndex = self.comboBoxVectorFormat.findText(
+          defaultVectorFormat)
+      if defaultVectorIndex != -1:
+        self.comboBoxVectorFormat.setCurrentIndex(defaultVectorIndex)
+
+    if defaultRasterFormat:
+      defaultRasterIndex = self.comboBoxRasterFormat.findText(
+          defaultRasterFormat)
+      if defaultRasterIndex != -1:
+        self.comboBoxRasterFormat.setCurrentIndex(defaultRasterIndex)
+
+    self.comboBoxVectorFormat.currentIndexChanged.connect(
+        self.handleVectorFormatChanged)
+    self.comboBoxRasterFormat.currentIndexChanged.connect(
+        self.handleRasterFormatChanged)
 
     # OAuth help
     oAuthPage = QWebPage()
@@ -98,15 +116,25 @@ class Dialog(QDialog, Ui_Dialog):
     """
     webbrowser.open(url.toString())
 
-  def handleFormatChanged(self, index):
-    """Saves the format settings.
+  def handleVectorFormatChanged(self, index):
+    """Saves the vector format settings.
 
     Args:
-      index: int, index of comboBoxFormat widget
+      index: int, index of comboBoxVectorFormat widget
     """
     imageFormat = unicode(
-        self.comboBoxFormat.itemText(index))
-    settings.write('gmeconnector/WMS_IMAGE_FORMAT', imageFormat)
+        self.comboBoxVectorFormat.itemText(index))
+    settings.write('gmeconnector/WMS_VECTOR_FORMAT', imageFormat)
+
+  def handleRasterFormatChanged(self, index):
+    """Saves the raster format settings.
+
+    Args:
+      index: int, index of comboBoxRasterFormat widget
+    """
+    imageFormat = unicode(
+        self.comboBoxRasterFormat.itemText(index))
+    settings.write('gmeconnector/WMS_RASTER_FORMAT', imageFormat)
 
   def populateProjects(self):
     """Adds the project information to the comboBoxProjects widget."""
