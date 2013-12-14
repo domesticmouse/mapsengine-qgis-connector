@@ -312,7 +312,7 @@ class GoogleMapsEngineConnector:
       layer: QgsVectorLayer
       selected: Return only the selected features from the layer
     Returns:
-      The features for the given layer.  Returns the all features from the
+      The features for the given layer.  Returns all the features from the
       layer if selected=False else returns only the selected features (default).
     """
     if selected:
@@ -465,9 +465,8 @@ class GoogleMapsEngineConnector:
 
   def doShowMore(self):
     """Show the more dialog."""
-    # We want to detect if the client_id or client_secret is changed and trigger
-    # the login dialog if a change is detected.
-    # Read the client_id and client_secret.
+    # Trigger the login dialog if we detect a change to client_id or
+    # client_secret.
     pre_client_id = settings.read('gmeconnector/CLIENT_ID')
     pre_client_secret = settings.read('gmeconnector/CLIENT_SECRET')
     self.moreDialog = more_dialog.Dialog(self.iface)

@@ -254,6 +254,9 @@ class Dialog(QDialog, Ui_Dialog):
       url = ('https://mapsengine.google.com/admin/'
              '#RepositoryPlace:cid=%s&'
              'v=DETAIL_INFO&aid=%s')
+      # The assetId returned by the API in a globally unique id of the form
+      # 'project_id-asset_id'. Split the assetId to get the project_id
+      # parameter (cid) in the url.
       gmeUrl = url % (assetId.split('-')[0], assetId)
       webbrowser.open(gmeUrl)
     finally:

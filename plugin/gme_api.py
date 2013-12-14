@@ -25,8 +25,9 @@ from datamodel import gme_layer
 from datamodel import gme_map
 from datamodel import gme_maplist
 
-GME_API_BASE_URI = 'https://www.googleapis.com/mapsengine/v1'
-GME_API_UPLOAD_URI = 'https://www.googleapis.com/upload/mapsengine/v1'
+GME_API_VERSION = 'v1'
+GME_API_BASE_URI = 'https://www.googleapis.com/mapsengine'
+GME_API_UPLOAD_URI = 'https://www.googleapis.com/upload/mapsengine'
 
 
 class GoogleMapsEngineAPI(object):
@@ -91,7 +92,7 @@ class GoogleMapsEngineAPI(object):
     Returns:
       decoded response if successful, None if failed.
     """
-    requestUrl = '%s/%s' % (GME_API_BASE_URI, 'projects')
+    requestUrl = '%s/%s/%s' % (GME_API_BASE_URI, GME_API_VERSION, 'projects')
     results = self.makeGoogleMapsEngineRequest(requestUrl, token.access_token)
     if results:
       return json.load(results)
@@ -108,7 +109,7 @@ class GoogleMapsEngineAPI(object):
     Returns:
       decoded response if successful, None if failed.
     """
-    baseUrl = '%s/%s' % (GME_API_BASE_URI, 'maps')
+    baseUrl = '%s/%s/%s' % (GME_API_BASE_URI, GME_API_VERSION, 'maps')
     params = {'projectId': projectId}
     if nextPageToken:
       params['pageToken'] = nextPageToken
@@ -134,7 +135,8 @@ class GoogleMapsEngineAPI(object):
     Returns:
       gme_map.Map object if successful, None if failed.
     """
-    requestUrl = '%s/%s/%s' % (GME_API_BASE_URI, 'maps', mapId)
+    requestUrl = '%s/%s/%s/%s' % (GME_API_BASE_URI, GME_API_VERSION,
+                                  'maps', mapId)
     results = self.makeGoogleMapsEngineRequest(requestUrl, token.access_token)
     if results:
       gmeMap = gme_map.Map(**json.load(results))
@@ -151,7 +153,8 @@ class GoogleMapsEngineAPI(object):
     Returns:
       gme_layer.Layer object if successful, None if failed.
     """
-    requestUrl = '%s/%s/%s' % (GME_API_BASE_URI, 'layers', layerId)
+    requestUrl = '%s/%s/%s/%s' % (GME_API_BASE_URI, GME_API_VERSION,
+                                  'layers', layerId)
     results = self.makeGoogleMapsEngineRequest(requestUrl, token.access_token)
     if results:
       gmeLayer = gme_layer.Layer(**json.load(results))
@@ -175,7 +178,8 @@ class GoogleMapsEngineAPI(object):
           errorMsg, 'GMEConnector', QgsMessageLog.CRITICAL)
       return
 
-    requestUrl = '%s/%s/%s' % (GME_API_BASE_URI, data_type, 'upload')
+    requestUrl = '%s/%s/%s/%s' % (GME_API_BASE_URI, GME_API_VERSION,
+                               data_type, 'upload')
     results = self.makeGoogleMapsEngineRequest(
         requestUrl, token.access_token, data=json.dumps(data))
     if results:
@@ -199,7 +203,8 @@ class GoogleMapsEngineAPI(object):
     Returns:
       response from the server.
     """
-    baseUrl = '%s/%s/%s/files' % (GME_API_UPLOAD_URI, data_type, assetId)
+    baseUrl = '%s/%s/%s/%s/files' % (GME_API_UPLOAD_URI, GME_API_VERSION,
+                                  data_type, assetId)
     params = {'filename': fileName}
     requestUrl = '%s?%s' % (baseUrl, urllib.urlencode(params))
 

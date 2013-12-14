@@ -221,7 +221,8 @@ class Dialog(QDialog, Ui_Dialog):
     selectedMapId = self.tableWidget.item(row, 0).text()
     selectedMapName = self.tableWidget.item(row, 1).text()
 
-    dislayText = 'Fetching map: %s. Please wait...' % selectedMapName
+    dislayText = ('Fetching map and layer extents: %s. '
+                  'Please wait...') % selectedMapName
     self.iface.messageBar().pushMessage(
         'Google Maps Engine Connector', dislayText, level=QgsMessageBar.INFO)
     QCoreApplication.processEvents()
@@ -236,7 +237,7 @@ class Dialog(QDialog, Ui_Dialog):
         'View tools are now enabled.',
         level=QgsMessageBar.INFO, duration=6)
 
-    dislayText = 'Loaded map: %s.' % gmeMap.name
+    dislayText = 'Loaded extents for map: %s.' % gmeMap.name
     self.iface.messageBar().pushMessage(
         'Google Maps Engine Connector', dislayText,
         level=QgsMessageBar.INFO, duration=3)

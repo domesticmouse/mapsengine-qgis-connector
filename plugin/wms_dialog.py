@@ -49,6 +49,8 @@ class Dialog(QDialog, Ui_Dialog):
     self.okButton.setText('Add Selected to Map')
     self.comboBoxLayer.activated.connect(self.loadCrsForIndex)
     self.comboBoxLayer.activated.connect(self.loadFormatForIndex)
+    self.comboBoxFormat.addItem('JPEG', 'image/jpeg')
+    self.comboBoxFormat.addItem('PNG', 'image/png')
 
   def getLayers(self, folders):
     """Fetches layers from the given folders.
@@ -74,12 +76,10 @@ class Dialog(QDialog, Ui_Dialog):
     Args:
       index: int, index of the comboBoxCrs widget.
     """
-    self.comboBoxFormat.clear()
     unused_layerId, dataType = self.comboBoxLayer.itemData(index)
     if dataType == 'image':
       # Raster overlay default format is JPEG.
-      self.comboBoxFormat.addItem('JPEG', 'image/jpeg')
-      self.comboBoxFormat.addItem('PNG', 'image/png')
+      self.comboBoxFormat.setCurrentIndex(self.comboBoxFormat.findText('JPEG'))
       defaultFormat = settings.read('gmeconnector/WMS_RASTER_FORMAT')
       if defaultFormat:
         defaultIndex = self.comboBoxFormat.findText(defaultFormat)
@@ -87,8 +87,7 @@ class Dialog(QDialog, Ui_Dialog):
           self.comboBoxFormat.setCurrentIndex(defaultIndex)
     elif dataType == 'table':
       # Vector overlay default format is PNG.
-      self.comboBoxFormat.addItem('PNG', 'image/png')
-      self.comboBoxFormat.addItem('JPEG', 'image/jpeg')
+      self.comboBoxFormat.setCurrentIndex(self.comboBoxFormat.findText('PNG'))
       defaultFormat = settings.read('gmeconnector/WMS_VECTOR_FORMAT')
       if defaultFormat:
         defaultIndex = self.comboBoxFormat.findText(defaultFormat)
@@ -96,8 +95,7 @@ class Dialog(QDialog, Ui_Dialog):
           self.comboBoxFormat.setCurrentIndex(defaultIndex)
     else:
       # Set default format as PNG.
-      self.comboBoxFormat.addItem('PNG', 'image/png')
-      self.comboBoxFormat.addItem('JPEG', 'image/jpeg')
+      self.comboBoxFormat.setCurrentIndex(self.comboBoxFormat.findText('PNG'))
 
   def loadCrsForIndex(self, index):
     """Loads compatible CRSs for the given index.

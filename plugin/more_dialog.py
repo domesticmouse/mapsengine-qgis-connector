@@ -54,14 +54,16 @@ class Dialog(QDialog, Ui_Dialog):
     # Other settings
     self.comboBoxProjects.setEnabled(False)
     self.checkBoxDefault.stateChanged.connect(self.comboBoxProjects.setEnabled)
-    # Make the default vector overlay format as PNG to make no-data values
-    # transparent.
     self.comboBoxVectorFormat.addItem('PNG', 'image/png')
     self.comboBoxVectorFormat.addItem('JPEG', 'image/jpeg')
-    # Make the default raster overlay format as JPEG to make the layer load
-    # faster.
-    self.comboBoxRasterFormat.addItem('JPEG', 'image/jpeg')
     self.comboBoxRasterFormat.addItem('PNG', 'image/png')
+    self.comboBoxRasterFormat.addItem('JPEG', 'image/jpeg')
+    # Default vector overlays as PNG to allow no-data values to be transparent.
+    self.comboBoxVectorFormat.setCurrentIndex(
+        self.comboBoxVectorFormat.findText('PNG'))
+    # Default raster overlays as JPEG to make loads faster.
+    self.comboBoxRasterFormat.setCurrentIndex(
+        self.comboBoxRasterFormat.findText('JPEG'))
     defaultVectorFormat = settings.read('gmeconnector/WMS_VECTOR_FORMAT')
     defaultRasterFormat = settings.read('gmeconnector/WMS_RASTER_FORMAT')
 
