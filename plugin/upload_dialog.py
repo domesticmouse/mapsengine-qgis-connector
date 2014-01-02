@@ -245,7 +245,7 @@ class Dialog(QDialog, Ui_Dialog):
             'Google Maps Engine Connector', msg, level=QgsMessageBar.INFO)
         QCoreApplication.processEvents()
 
-        content = open(filesToUpload[fileName]).read()
+        content = open(filesToUpload[fileName], 'rb').read()
         api.postUploadFile(assetId, data_type, fileName, content, token)
 
       self.iface.messageBar().clearWidgets()
