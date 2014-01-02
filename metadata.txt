@@ -1,17 +1,12 @@
 [general]
 name=Google Maps Engine Connector
 description=Google Maps Engine Connector for QGIS allows your to authenticate with your Google Account, list maps you have access to and view and interact with them within QGIS. Get your free maps engine account at http://maps.google.com/engine.
-version=1.1
+version=1.1.1
 icon=icon.png
 qgisMinimumVersion=2.0
 homepage=http://maps.google.com/engine
 author=Google
 email=ujaval@google.com
 repository=https://github.com/googlemaps/mapsengine-qgis-connector
-changelog=1.1
-    - Changed API version from create_tt to v1.
-    - Added support for raster upload.
-    - Trigger sign-in dialog after detecting change in client_secret and
-      client_id.
-    - Better defaults for WMS overlays.
-    - Merged pull request #1 from NathanW.
+changelog=1.1.1
+    - Open files in binary mode to fix upload issues on Windows.

@@ -106,7 +106,7 @@ class Dialog(QDialog, Ui_Dialog):
     aboutFile.open(QIODevice.ReadOnly | QIODevice.Text)
     aboutStr = QTextStream(aboutFile)
     aboutText = aboutStr.readAll()
-    newText = aboutText.format(version='1.1')
+    newText = aboutText.format(version='1.1.1')
     self.webViewAbout.setHtml(newText)
     self.webViewAbout.linkClicked.connect(self.handleWebLink)
 
