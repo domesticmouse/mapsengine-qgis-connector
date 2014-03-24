@@ -269,8 +269,8 @@ class GoogleMapsEngineConnector:
 
     currentLayer = self.iface.mapCanvas().currentLayer()
 
-    # If a layer is selected
-    if currentLayer:
+    # If a layer is selected and is of type vector or raster
+    if currentLayer and (currentLayer.type() in (0, 1)):
       gmeMap, gmeLayers = self.getAssetsFromLayer(currentLayer)
       # If a map is available
       if gmeMap and self.token:
