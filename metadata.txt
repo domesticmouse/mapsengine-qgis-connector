@@ -1,13 +1,7 @@
 [general]
 name=Google Maps Engine Connector
-description=Auhenticate, view and interact with your Google Maps Engine maps in
-            QGIS.
-about=Google Maps Engine Connector for QGIS allows your to authenticate with
-      your Google Account, list maps you have access to and view and interact
-      with them within QGIS. You will need a Google Maps Engine account to use
-      this plugin. If you do not have one, get your free maps engine account by
-      visiting http://maps.google.com/engine and clicking 'Get started with a
-      free account'.
+description=Auhenticate, view and interact with your Google Maps Engine maps in QGIS.
+about=Google Maps Engine Connector for QGIS allows you to authenticate with your Google Account, list maps you have access to and view them within QGIS. You can also upload vector or raster layers from QGIS to Google Maps Engine. You will need a Google Maps Engine account to use this plugin. If you do not have one, get your free maps engine account by visiting http://maps.google.com/engine and clicking 'Get started with a free account'.
 version=1.1.2
 icon=icon.png
 qgisMinimumVersion=2.0
