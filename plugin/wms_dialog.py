@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
+import oauth2_utils
 from PyQt4.QtGui import QDialog
 from PyQt4.QtGui import QDialogButtonBox
 from qgis.core import QgsDataSourceURI
@@ -23,13 +24,24 @@ from qgis.core import QgsMapLayerRegistry
 from qgis.core import QgsMessageLog
 from qgis.core import QgsRasterLayer
 from qgis.gui import QgsMessageBar
-import oauth2_utils
 import settings
 from wms_dialog_base import Ui_Dialog
+# OWSLib is part of the default package from QGIS 2.4
+# Older versions of QGIS may not have it installed.
+try:
+  from owslib.wms import WebMapService
+  owslib_available = True
+except ImportError:
+  QgsMessageLog.logMessage('OWSLib not available',
+                           'GMEConnector',
+                           QgsMessageLog.INFO)
+  owslib_available = False
 
 # Vector and Raster layers can be displayed in different CRS
+# TODO: Use crsOptions from OWSLib to populate this from GetCapabilities.
 CRS_DICT = {'table': ('EPSG:3857', 'EPSG:3785', 'EPSG:900913'),
             'image': ('EPSG:4326', 'EPSG:3857', 'EPSG:3785', 'EPSG:900913'),
+            'baselayer': ('EPSG:3857', 'EPSG:3785', 'EPSG:900913'),
             'unknown': ('EPSG:4326', 'EPSG:3857', 'EPSG:3785', 'EPSG:900913')}
 
 
@@ -109,6 +121,35 @@ class Dialog(QDialog, Ui_Dialog):
       for crs in CRS_DICT[dataType]:
         self.comboBoxCrs.addItem(crs)
 
+  def populateLayersOWS(self, gmeMap):
+    """Adds layer information to comboBoxLayer widget using OWSLib.
+
+    Args:
+      gmeMap: gme_map.Map object.
+    """
+    self.labelMapName.setText(gmeMap.name)
+    self.labelMapId.setText(gmeMap.id)
+    self.comboBoxLayer.clear()
+    mapId = gmeMap.id
+    # Create the WMS layer
+    token = oauth2_utils.getToken()
+    url = 'https://mapsengine.google.com/%s-4/wms/%s/'
+    wmsUrl = url % (mapId, token.access_token)
+    wms = WebMapService(wmsUrl)
+    for layer in list(wms.contents):
+      if wms[layer].abstract == 'Raster layer':
+        dataType = 'image'
+      elif wms[layer].abstract == 'Vector layer':
+        dataType = 'table'
+      elif wms[layer].abstract == 'Base layer':
+        dataType = 'baselayer'
+      else:
+        dataType = 'unknown'
+
+      userData = (layer, dataType)
+      if dataType != 'unknown':
+        self.comboBoxLayer.addItem(wms[layer].title, userData)
+
   def populateLayers(self, gmeMap, gmeLayers):
     """Adds layer information to comboBoxLayer widget.
 
@@ -116,12 +157,15 @@ class Dialog(QDialog, Ui_Dialog):
       gmeMap: gme_map.Map object.
       gmeLayers: list, of gme_layer.Layer objects.
     """
-    self.labelMapName.setText(gmeMap.name)
-    self.labelMapId.setText(gmeMap.id)
-    self.comboBoxLayer.clear()
-    for gmeLayer in gmeLayers:
-      userData = (gmeLayer.id, gmeLayer.datasourceType)
-      self.comboBoxLayer.addItem(gmeLayer.name, userData)
+    if owslib_available:
+      self.populateLayersOWS(gmeMap)
+    else:
+      self.labelMapName.setText(gmeMap.name)
+      self.labelMapId.setText(gmeMap.id)
+      self.comboBoxLayer.clear()
+      for gmeLayer in gmeLayers:
+        userData = (gmeLayer.id + '-4', gmeLayer.datasourceType)
+        self.comboBoxLayer.addItem(gmeLayer.name, userData)
 
   def accept(self):
     """Creates and loads the WMS layer."""
@@ -129,7 +173,6 @@ class Dialog(QDialog, Ui_Dialog):
     currentIndex = self.comboBoxLayer.currentIndex()
     currentLayerId, unused_dataType = self.comboBoxLayer.itemData(currentIndex)
     currentLayerName = unicode(self.comboBoxLayer.currentText())
-    wmsLayerId = '%s-4' % currentLayerId
     mapId = self.labelMapId.text()
     # Create the WMS layer
     token = oauth2_utils.getToken()
@@ -141,7 +184,7 @@ class Dialog(QDialog, Ui_Dialog):
 
     uri = QgsDataSourceURI()
     uri.setParam('url', wmsUrl)
-    uri.setParam('layers', wmsLayerId)
+    uri.setParam('layers', currentLayerId)
     uri.setParam('format', imageFormat)
     uri.setParam('crs', crs)
     uri.setParam('styles', '')

@@ -19,15 +19,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 import codecs
 import cStringIO
 import csv
+import gme_api
+import oauth2_utils
 from PyQt4.QtCore import QCoreApplication
-from PyQt4.QtCore import QSettings
 from PyQt4.QtCore import QVariant
 from PyQt4.QtGui import QAbstractItemView
 from PyQt4.QtGui import QApplication
 from PyQt4.QtGui import QDialog
 from PyQt4.QtGui import QDialogButtonBox
 from PyQt4.QtGui import QTableWidgetItem
-from qgis.core import QgsCoordinateReferenceSystem
 from qgis.core import QgsFeature
 from qgis.core import QgsField
 from qgis.core import QgsGeometry
@@ -36,12 +36,9 @@ from qgis.core import QgsMessageLog
 from qgis.core import QgsPoint
 from qgis.core import QgsVectorLayer
 from qgis.gui import QgsMessageBar
-import gme_api
-import oauth2_utils
 from search_gme_dialog_base import Ui_Dialog
 import settings
 
-worldCrs = QgsCoordinateReferenceSystem(4326)
 worldGeom = QgsGeometry.fromPolygon(
     [[QgsPoint(-180, -90), QgsPoint(-180, 90),
       QgsPoint(180, 90), QgsPoint(180, -90)]])
@@ -299,6 +296,9 @@ class Dialog(QDialog, Ui_Dialog):
       if 'map' in feature.attributes():
         vectorLayer.setSelectedFeatures([feature.id()])
 
+    # Set the newly loaded layer as the active layer
+    self.iface.legendInterface().setCurrentLayer(vectorLayer)
+
   def createVectorLayer(self, layerName):
     """Creates a vector layer in memory.
 
@@ -307,15 +307,7 @@ class Dialog(QDialog, Ui_Dialog):
     Returns:
       QgsVectorLayer instance
     """
-    # We change the setting that by default asks user to choose a CRS for newly
-    # created layers. This # setting is restored to its original value once
-    # the layer is created.
-    s = QSettings()
-    oldValue = s.value('/Projections/defaultBehaviour')
-    s.setValue('/Projections/defaultBehaviour', 'useGlobal')
-    vectorLayer = QgsVectorLayer('Polygon', layerName, 'memory')
-    vectorLayer.setCrs(worldCrs)
-    s.setValue('/Projections/defaultBehaviour', oldValue)
+    vectorLayer = QgsVectorLayer('Polygon?crs=EPSG:4326', layerName, 'memory')
     self.dataProvider = vectorLayer.dataProvider()
     self.dataProvider.addAttributes(
         [QgsField('Project Identifier', QVariant.String),
