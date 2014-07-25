@@ -49,7 +49,6 @@ class Dialog(QDialog, Ui_Dialog):
     self.iface = iface
 
     # Set defaults
-    self.lineEditAcl.setText('Map Editors')
     self.lineEditTags.setText('QGIS Desktop')
 
     # Initialize
@@ -209,7 +208,8 @@ class Dialog(QDialog, Ui_Dialog):
       data['name'] = unicode(self.lineEditDestinationName.text())
       data['description'] = unicode(self.lineEditDescription.text())
       data['files'] = [{'filename': x} for x in filesToUpload]
-      data['draftAccessList'] = acl
+      if acl:
+        data['draftAccessList'] = acl
       if tags:
         data['tags'] = [unicode(x) for x in tags.split(',')]
 
