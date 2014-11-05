@@ -23,6 +23,7 @@ from PyQt4.QtGui import QApplication
 from PyQt4.QtGui import QIcon
 from PyQt4.QtGui import QLabel
 from PyQt4.QtGui import QMessageBox
+from qgis.core import QgsMessageLog
 from qgis.gui import QgsMessageBar
 from plugin import more_dialog
 from plugin import oauth2_utils
@@ -344,9 +345,10 @@ class GoogleMapsEngineConnector:
         gmeMap = gme_map.Map(id=resourceId, name=name)
       elif resourceType == 'layer':
         layerDataSource = feature['Data Source Type']
-        gmeLayer = gme_layer.Layer(id=resourceId, name=name,
-                                   datasourceType=layerDataSource)
-        gmeLayers.append(gmeLayer)
+        if layerDataSource:
+          gmeLayer = gme_layer.Layer(id=resourceId, name=name,
+                                     datasourceType=layerDataSource)
+          gmeLayers.append(gmeLayer)
     return gmeMap, gmeLayers
 
   def doSignInOrOut(self, checked):
@@ -402,11 +404,18 @@ class GoogleMapsEngineConnector:
     currentLayer = self.iface.mapCanvas().currentLayer()
     gmeMap, gmeLayers = self.getAssetsFromLayer(
         currentLayer, selected_only=False)
-    self.wmsDialog = wms_dialog.Dialog(self.iface)
-    self.wmsDialog.populateLayers(gmeMap, gmeLayers)
-    self.wmsDialog.loadCrsForIndex(0)
-    self.wmsDialog.loadFormatForIndex(0)
-    self.wmsDialog.exec_()
+    if gmeLayers:
+      self.wmsDialog = wms_dialog.Dialog(self.iface)
+      self.wmsDialog.populateLayers(gmeMap, gmeLayers)
+      self.wmsDialog.loadCrsForIndex(0)
+      self.wmsDialog.loadFormatForIndex(0)
+      self.wmsDialog.exec_()
+    else:
+      warnText = 'No supported layers found. KML layers are not supported.'
+      QgsMessageLog.logMessage(warnText, 'GMEConnector', QgsMessageLog.CRITICAL)
+      self.iface.messageBar().pushMessage(
+          'Google Maps Engine Connector', warnText,
+          level=QgsMessageBar.CRITICAL, duration=3)
 
   def doShareSecureLink(self):
     """Copy the WMS link to clipboard."""
